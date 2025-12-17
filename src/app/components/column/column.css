@@ -1,0 +1,137 @@
+:host {
+    display: inline-block;
+    height: 100%;
+    vertical-align: top;
+    white-space: nowrap;
+    width: 272px;
+    margin: 0 4px;
+}
+
+.column-container {
+    background-color: #ebecf0;
+    border-radius: 3px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    position: relative;
+    white-space: normal;
+}
+
+.column-header {
+    flex: 0 0 auto;
+    padding: 10px 8px;
+    position: relative;
+    min-height: 20px;
+}
+
+.column-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+    color: #172b4d;
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Noto Sans, Ubuntu, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+.card-list {
+    flex: 1 1 auto;
+    margin-bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0 4px;
+    padding: 0 4px;
+    z-index: 1;
+    min-height: 0;
+}
+
+.column-footer {
+    padding: 8px;
+    flex: 0 0 auto;
+}
+
+.open-card-composer {
+    border-radius: 3px;
+    color: #5e6c84;
+    display: block;
+    flex: 1 0 auto;
+    margin: 2px 0 8px 8px;
+    padding: 4px 8px;
+    position: relative;
+    text-decoration: none;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: pointer;
+}
+
+.open-card-composer:hover {
+    background-color: rgba(9, 30, 66, .08);
+    color: #172b4d;
+}
+
+.card-composer-textarea {
+    background: #fff;
+    border: none;
+    box-shadow: inset 0 0 0 2px #0079bf;
+    display: block;
+    margin: 0;
+    padding: 8px 12px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 3px;
+    resize: none;
+    height: 60px;
+    font-family: inherit;
+}
+
+.composer-controls {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.primary-btn {
+    background-color: #0079bf;
+    border: none;
+    box-shadow: none;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-weight: 400;
+    line-height: 20px;
+    margin-right: 4px;
+    padding: 6px 12px;
+    text-align: center;
+    border-radius: 3px;
+}
+
+.primary-btn:hover {
+    background-color: #026aa7;
+}
+
+.icon-close {
+    cursor: pointer;
+    color: #6b778c;
+    font-size: 20px;
+    margin-left: 8px;
+}
+
+.cdk-drag-preview {
+    box-sizing: border-box;
+    border-radius: 3px;
+    box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+        0 8px 10px 1px rgba(0, 0, 0, 0.14),
+        0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+.cdk-drag-placeholder {
+    opacity: 0;
+}
+
+.cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.card-list.cdk-drop-list-dragging .cdk-drag {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

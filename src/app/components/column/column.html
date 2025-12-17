@@ -1,0 +1,22 @@
+<div class="column-container">
+    <div class="column-header">
+        <h2 class="column-title">{{ column.title }}</h2>
+    </div>
+    <div cdkDropList [cdkDropListData]="column.cards" class="card-list" (cdkDropListDropped)="drop($event)">
+        <app-card *ngFor="let card of column.cards" [card]="card" cdkDrag></app-card>
+    </div>
+    <div class="column-footer">
+        <div *ngIf="!isAddingCard" class="open-card-composer" (click)="isAddingCard = true">
+            <span class="icon-add">+</span> Add a card
+        </div>
+        <div *ngIf="isAddingCard" class="card-composer">
+            <textarea class="card-composer-textarea" placeholder="Enter a title for this card..."
+                [(ngModel)]="newCardTitle" (keydown.enter)="addCard(); $event.preventDefault()">
+      </textarea>
+            <div class="composer-controls">
+                <button class="primary-btn" (click)="addCard()">Add Card</button>
+                <span class="icon-close" (click)="isAddingCard = false">X</span>
+            </div>
+        </div>
+    </div>
+</div>

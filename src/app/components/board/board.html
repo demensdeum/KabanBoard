@@ -1,0 +1,25 @@
+<div class="board-wrapper">
+    <div class="board-main-content">
+        <div class="board-header">
+            <h1>{{ board.title }}</h1>
+        </div>
+        <div class="board-canvas" cdkDropListGroup>
+            <app-column *ngFor="let column of board.columns" [column]="column"></app-column>
+
+            <!-- Add Column Section -->
+            <div class="add-column-wrapper">
+                <div *ngIf="!isAddingColumn" class="add-column-placeholder" (click)="isAddingColumn = true">
+                    <span class="icon-add">+</span> Add another list
+                </div>
+                <div *ngIf="isAddingColumn" class="add-column-form">
+                    <input type="text" class="column-input" placeholder="Enter list title..."
+                        [(ngModel)]="newColumnTitle" (keydown.enter)="addColumn()" autoFocus>
+                    <div class="add-column-controls">
+                        <button class="primary-btn" (click)="addColumn()">Add list</button>
+                        <span class="icon-close" (click)="isAddingColumn = false">X</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
