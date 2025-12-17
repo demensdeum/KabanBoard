@@ -1,0 +1,16 @@
+<div class="sidebar-container">
+    <div class="sidebar-header">
+        <h2>Projects</h2>
+    </div>
+    <div class="projects-list">
+        <a *ngFor="let project of projects$ | async" [routerLink]="['/board', project.id]" routerLinkActive="active"
+            class="project-link">
+            <span class="project-icon"></span>
+            <span class="project-title">{{ project.title }}</span>
+            <span class="delete-icon" (click)="$event.preventDefault(); deleteProject(project.id)">×</span>
+        </a>
+    </div>
+    <div class="add-project-btn" (click)="addProject()">
+        <span class="icon-add">+</span> Create new board
+    </div>
+</div>

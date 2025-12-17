@@ -1,10 +1,10 @@
-<div class="board-wrapper">
+<div class="board-wrapper" *ngIf="board; else loadingTpl">
     <div class="board-main-content">
         <div class="board-header">
             <h1>{{ board.title }}</h1>
         </div>
         <div class="board-canvas" cdkDropListGroup>
-            <app-column *ngFor="let column of board.columns" [column]="column"></app-column>
+            <app-column *ngFor="let column of board.columns" [column]="column" [boardId]="board.id"></app-column>
 
             <!-- Add Column Section -->
             <div class="add-column-wrapper">
@@ -23,3 +23,7 @@
         </div>
     </div>
 </div>
+
+<ng-template #loadingTpl>
+    <div class="loading-message">Select a project or create a new one</div>
+</ng-template>
