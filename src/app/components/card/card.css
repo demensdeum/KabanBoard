@@ -33,17 +33,3 @@
     line-height: 20px;
     font-weight: 400;
 }
-
-.card-labels {
-    overflow: auto;
-    position: relative;
-}
-
-.label {
-    float: left;
-    height: 8px;
-    margin: 0 4px 4px 0;
-    min-width: 40px;
-    width: auto;
-    border-radius: 4px;
-}
