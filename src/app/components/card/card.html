@@ -1,3 +1,6 @@
-<div class="card-content">
-    <div class="card-title">{{ card.title }}</div>
+<div class="card-content" (click)="startEditing($event)">
+    <div class="card-title" *ngIf="!isEditing">{{ card.title }}</div>
+    <textarea #editInput *ngIf="isEditing" class="card-edit-input" [(ngModel)]="card.title" (blur)="stopEditing()"
+        (keydown.enter)="stopEditing(); $event.preventDefault()">
+    </textarea>
 </div>
