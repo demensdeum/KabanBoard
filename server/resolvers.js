@@ -11,7 +11,15 @@ const resolvers = {
     },
     Mutation: {
         createBoard: async (_, { title }) => {
-            const newBoard = new Board({ title, columns: [] });
+            const defaultColumns = [
+                { title: 'ToDo', cards: [] },
+                { title: 'Analysis', cards: [] },
+                { title: 'Blocked', cards: [] },
+                { title: 'In Progress', cards: [] },
+                { title: 'Review', cards: [] },
+                { title: 'Done', cards: [] }
+            ];
+            const newBoard = new Board({ title, columns: defaultColumns });
             return await newBoard.save();
         },
         deleteBoard: async (_, { id }) => {

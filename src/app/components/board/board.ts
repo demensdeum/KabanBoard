@@ -45,7 +45,7 @@ const ADD_COLUMN = gql`
   styleUrl: './board.css',
 })
 export class Board implements OnInit {
-  @Input() id!: string; // From router component input binding
+
 
   board: BoardModel | null = null;
   loading = true;
@@ -63,11 +63,18 @@ export class Board implements OnInit {
   }
 
   // Handle Input change for route params
+  // Handle Input change for route params
   @Input()
-  set boardId(value: string) {
-    this.id = value;
+  set id(value: string) {
+    this._id = value;
     this.fetchBoard();
   }
+
+  get id(): string {
+    return this._id;
+  }
+
+  private _id!: string;
 
   fetchBoard() {
     if (!this.id) return;
