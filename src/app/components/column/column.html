@@ -4,7 +4,7 @@
     </div>
     <div cdkDropList [cdkDropListData]="column.cards" class="card-list" (cdkDropListDropped)="drop($event)">
         <div class="empty-placeholder" *ngIf="column.cards.length === 0">
-            Drop items here
+            Drop or create card
         </div>
         <app-card *ngFor="let card of column.cards" [card]="card" cdkDrag></app-card>
     </div>
