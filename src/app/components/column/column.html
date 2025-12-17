@@ -3,6 +3,9 @@
         <h2 class="column-title">{{ column.title }}</h2>
     </div>
     <div cdkDropList [cdkDropListData]="column.cards" class="card-list" (cdkDropListDropped)="drop($event)">
+        <div class="empty-placeholder" *ngIf="column.cards.length === 0">
+            Drop items here
+        </div>
         <app-card *ngFor="let card of column.cards" [card]="card" cdkDrag></app-card>
     </div>
     <div class="column-footer">
