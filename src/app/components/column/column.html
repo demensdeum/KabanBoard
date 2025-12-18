@@ -1,6 +1,7 @@
 <div class="column-container">
     <div class="column-header">
         <h2 class="column-title">{{ column.title }}</h2>
+        <span class="delete-column-btn" (click)="deleteColumn()" title="Delete Column">×</span>
     </div>
     <div cdkDropList [id]="column.id" [cdkDropListData]="column.cards" class="card-list"
         (cdkDropListDropped)="dropSync($event)">

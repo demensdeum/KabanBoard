@@ -23,6 +23,23 @@
     padding: 10px 8px;
     position: relative;
     min-height: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.delete-column-btn {
+    cursor: pointer;
+    color: #6b778c;
+    font-size: 20px;
+    padding: 0 4px;
+    border-radius: 3px;
+    line-height: 1;
+}
+
+.delete-column-btn:hover {
+    background-color: rgba(9, 30, 66, 0.08);
+    color: #172b4d;
 }
 
 .column-title {

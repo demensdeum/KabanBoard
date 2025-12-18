@@ -25,6 +25,12 @@ const MOVE_CARD = gql`
   }
 `;
 
+const DELETE_COLUMN = gql`
+  mutation DeleteColumn($boardId: ID!, $columnId: ID!) {
+    deleteColumn(boardId: $boardId, columnId: $columnId)
+  }
+`;
+
 const GET_BOARD = gql`
   query GetBoard($id: ID!) {
     getBoard(id: $id) {
@@ -142,5 +148,18 @@ export class Column {
       this.newCardTitle = '';
       this.isAddingCard = false;
     });
+  }
+
+  deleteColumn() {
+    if (!confirm('Are you sure you want to delete this column?')) return;
+
+    this.apollo.mutate({
+      mutation: DELETE_COLUMN,
+      variables: {
+        boardId: this.boardId,
+        columnId: this.column.id
+      },
+      refetchQueries: [{ query: GET_BOARD, variables: { id: this.boardId } }]
+    }).subscribe();
   }
 }
