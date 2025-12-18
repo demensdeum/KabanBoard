@@ -25,5 +25,6 @@
 </div>
 
 <ng-template #loadingTpl>
-    <div class="loading-message">Select a project or create a new one</div>
+    <div class="loading-message" *ngIf="loading">Loading...</div>
+    <div class="loading-message" *ngIf="!loading">Select a project or create a new one</div>
 </ng-template>

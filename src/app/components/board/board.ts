@@ -1,10 +1,11 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Board as BoardModel, Column as ColumnModel, Card as CardModel } from '../../models/board.model';
 import { Column } from '../column/column';
 import { CdkDropListGroup, DragDropModule } from '@angular/cdk/drag-drop';
 import { FormsModule } from '@angular/forms';
 import { Apollo, gql } from 'apollo-angular';
+import { Subscription } from 'rxjs';
 
 const GET_BOARD = gql`
   query GetBoard($id: ID!) {
@@ -44,7 +45,7 @@ const ADD_COLUMN = gql`
   templateUrl: './board.html',
   styleUrl: './board.css',
 })
-export class Board implements OnInit {
+export class Board implements OnInit, OnDestroy {
 
 
   board: BoardModel | null = null;
@@ -53,7 +54,15 @@ export class Board implements OnInit {
   isAddingColumn = false;
   newColumnTitle = '';
 
+  private querySubscription: Subscription | null = null;
+
   constructor(private apollo: Apollo) { }
+
+  ngOnDestroy() {
+    if (this.querySubscription) {
+      this.querySubscription.unsubscribe();
+    }
+  }
 
   ngOnInit() {
     // Input binding will set 'id'. Note: if reusing component for param change, might need ngOnChanges or observable.
@@ -78,8 +87,15 @@ export class Board implements OnInit {
 
   fetchBoard() {
     if (!this.id) return;
+
+    if (this.querySubscription) {
+      this.querySubscription.unsubscribe();
+    }
+
+    this.board = null;
     this.loading = true;
-    this.apollo.watchQuery<any>({
+
+    this.querySubscription = this.apollo.watchQuery<any>({
       query: GET_BOARD,
       variables: { id: this.id },
       pollInterval: 2000
