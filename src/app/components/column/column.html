@@ -1,6 +1,8 @@
 <div class="column-container">
     <div class="column-header">
-        <h2 class="column-title">{{ column.title }}</h2>
+        <h2 class="column-title" *ngIf="!isEditingTitle" (click)="enableTitleEditing()">{{ column.title }}</h2>
+        <input *ngIf="isEditingTitle" class="column-title-input" [(ngModel)]="editedTitle" (blur)="updateTitle()"
+            (keydown.enter)="updateTitle()" autoFocus>
         <span class="delete-column-btn" (click)="deleteColumn()" title="Delete Column">×</span>
     </div>
     <div cdkDropList [id]="column.id" [cdkDropListData]="column.cards" class="card-list"

@@ -27,8 +27,8 @@ const GET_BOARD = gql`
 `;
 
 const ADD_COLUMN = gql`
-  mutation AddColumn($boardId: ID!, $title: String!) {
-    addColumn(boardId: $boardId, title: $title) {
+  mutation AddColumn($boardId: ID! $title: String!) {
+    addColumn(boardId: $boardId title: $title) {
       id
       title
       cards {

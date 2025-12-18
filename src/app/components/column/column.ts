@@ -7,8 +7,8 @@ import { FormsModule } from '@angular/forms';
 import { Apollo, gql } from 'apollo-angular';
 
 const ADD_CARD = gql`
-  mutation AddCard($boardId: ID!, $columnId: ID!, $title: String!) {
-    addCard(boardId: $boardId, columnId: $columnId, title: $title) {
+  mutation AddCard($boardId: ID! $columnId: ID! $title: String!) {
+    addCard(boardId: $boardId columnId: $columnId title: $title) {
         id
         title
         description
@@ -18,16 +18,25 @@ const ADD_CARD = gql`
 `;
 
 const MOVE_CARD = gql`
-  mutation MoveCard($boardId: ID!, $fromColumnId: ID!, $toColumnId: ID!, $cardId: ID!, $index: Int!) {
-    moveCard(boardId: $boardId, fromColumnId: $fromColumnId, toColumnId: $toColumnId, cardId: $cardId, index: $index) {
+  mutation MoveCard($boardId: ID! $fromColumnId: ID! $toColumnId: ID! $cardId: ID! $index: Int!) {
+    moveCard(boardId: $boardId fromColumnId: $fromColumnId toColumnId: $toColumnId cardId: $cardId index: $index) {
         id
     }
   }
 `;
 
 const DELETE_COLUMN = gql`
-  mutation DeleteColumn($boardId: ID!, $columnId: ID!) {
-    deleteColumn(boardId: $boardId, columnId: $columnId)
+  mutation DeleteColumn($boardId: ID! $columnId: ID!) {
+    deleteColumn(boardId: $boardId columnId: $columnId)
+  }
+`;
+
+const UPDATE_COLUMN = gql`
+  mutation UpdateColumn($boardId: ID! $columnId: ID! $title: String!) {
+    updateColumn(boardId: $boardId columnId: $columnId title: $title) {
+        id
+        title
+    }
   }
 `;
 
@@ -63,6 +72,9 @@ export class Column {
 
   isAddingCard = false;
   newCardTitle = '';
+
+  isEditingTitle = false;
+  editedTitle = '';
 
   constructor(private apollo: Apollo) { }
 
@@ -161,5 +173,29 @@ export class Column {
       },
       refetchQueries: [{ query: GET_BOARD, variables: { id: this.boardId } }]
     }).subscribe();
+  }
+
+  enableTitleEditing() {
+    this.editedTitle = this.column.title;
+    this.isEditingTitle = true;
+  }
+
+  updateTitle() {
+    if (!this.editedTitle.trim() || this.editedTitle === this.column.title) {
+      this.isEditingTitle = false;
+      return;
+    }
+
+    this.apollo.mutate({
+      mutation: UPDATE_COLUMN,
+      variables: {
+        boardId: this.boardId,
+        columnId: this.column.id,
+        title: this.editedTitle
+      },
+      refetchQueries: [{ query: GET_BOARD, variables: { id: this.boardId } }]
+    }).subscribe(() => {
+      this.isEditingTitle = false;
+    });
   }
 }

@@ -35,6 +35,17 @@ const resolvers = {
             await board.save();
             return board.columns[board.columns.length - 1];
         },
+        updateColumn: async (_, { boardId, columnId, title }) => {
+            const board = await Board.findById(boardId);
+            if (!board) throw new Error('Board not found');
+
+            const column = board.columns.id(columnId);
+            if (!column) throw new Error('Column not found');
+
+            column.title = title;
+            await board.save();
+            return column;
+        },
         deleteColumn: async (_, { boardId, columnId }) => {
             const board = await Board.findById(boardId);
             if (!board) throw new Error('Board not found');

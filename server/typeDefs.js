@@ -28,6 +28,7 @@ const typeDefs = `#graphql
     deleteBoard(id: ID!): Boolean
     
     addColumn(boardId: ID!, title: String!): Column
+    updateColumn(boardId: ID!, columnId: ID!, title: String!): Column
     deleteColumn(boardId: ID!, columnId: ID!): Boolean
     
     addCard(boardId: ID!, columnId: ID!, title: String!): Card
