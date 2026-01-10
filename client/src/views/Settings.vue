@@ -49,10 +49,10 @@
             <div class="user-info">
               <span class="user-name">{{ user.username }}</span>
               <div class="user-badges">
-                <span v-if="user.isAdmin" class="badge admin">Super</span>
-                <span v-if="user.canManageUsers" class="badge">Users</span>
-                <span v-if="user.canManageBoards" class="badge">Boards</span>
-                <span v-if="user.canManageTasks" class="badge">Tasks</span>
+                <span v-if="user.isAdmin" class="badge admin">Super user</span>
+                <span v-if="user.canManageUsers" class="badge users">User manager</span>
+                <span v-if="user.canManageBoards" class="badge boards">Board manager</span>
+                <span v-if="user.canManageTasks" class="badge tasks">Task manager</span>
               </div>
             </div>
             <div class="user-actions">
@@ -434,5 +434,113 @@ export default {
 
 .language-name {
   font-weight: 500;
+}
+.user-list {
+  display: grid;
+  gap: 12px;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.user-item:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 120px;
+}
+
+.user-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge.admin {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.badge.users {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.badge.boards {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.badge.tasks {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn-icon.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.add-user-btn {
+  margin-top: 16px;
+  width: 100%;
+  border-style: dashed;
+}
+
+.add-user-btn:hover {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.05);
 }
 </style>
