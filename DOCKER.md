@@ -149,3 +149,24 @@ If you prefer to run MongoDB, Server, and Client all in **one single container**
     ```
 
 3.  Access the app at: **http://localhost:3000**
+
+## Resetting the Database
+
+If you need to wipe all data (e.g. to fix version incompatibility or start fresh):
+
+1.  **Stop and remove the container:**
+    ```bash
+    docker rm -f kaban-app
+    ```
+
+2.  **Remove the data volume:**
+    ```bash
+    # The volume name is usually kaban-board_mongodb_data or similar.
+    # Check it with: docker volume ls
+    docker volume rm kaban-board_mongodb_data
+    ```
+
+3.  **Start fresh:**
+    ```bash
+    docker-compose up -d
+    ```

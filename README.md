@@ -69,6 +69,35 @@ This pulls images from Docker Hub (`demensdeum/kaban-server`, `demensdeum/kaban-
 
 Access at: **http://localhost**
 
+## Deployment & Base Path
+
+⚠️ **Important**: The application is configured to run under the base path `/kaban-board/`.
+This means it expects to be accessed at `http://your-domain.com/kaban-board/`.
+
+### Nginx Configuration Example
+
+Use this configuration to proxy requests to the container (running on port 3002 in this example):
+
+```nginx
+server {
+    server_name your-domain.com;
+
+    location /kaban-board/ {
+        proxy_pass http://localhost:3002/kaban-board/;
+        
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto https; 
+    }
+}
+```
+
 See [DOCKER.md](DOCKER.md) for full documentation.
 
 ## License
