@@ -28,8 +28,10 @@
           </button>
         </div>
       </div>
+    </div>
 
-      <div v-if="userPermissions.canManageUsers" class="setting-item user-management-section">
+    <div v-if="userPermissions.canManageUsers" class="settings-card">
+      <div class="setting-item user-management-section">
         <div class="setting-header">
           <div class="setting-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -348,6 +350,9 @@ export default {
   padding: 32px;
   max-width: 600px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .settings-title {
