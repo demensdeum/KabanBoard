@@ -13,6 +13,8 @@ A modern Kaban board application built with **Vue 3** and **MongoDB**.
 - 🌙 Modern dark theme
 - 💾 Data persistence with MongoDB
 
+![screenshot.png](screenshot.png)
+
 ## Tech Stack
 
 - **Frontend**: Vue 3, Vite, Vue Router

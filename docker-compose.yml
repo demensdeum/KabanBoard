@@ -11,7 +11,7 @@ services:
       - "27017:27017"
 
   server:
-    build: ./server
+    image: demensdeum/kaban-server:latest
     container_name: kaban-server
     restart: always
     depends_on:
@@ -23,7 +23,7 @@ services:
       - PORT=3000
 
   client:
-    build: ./client
+    image: demensdeum/kaban-client:latest
     container_name: kaban-client
     restart: always
     ports:

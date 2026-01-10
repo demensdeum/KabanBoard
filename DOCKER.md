@@ -15,20 +15,20 @@ Run the full stack with a single command:
 docker-compose up -d
 ```
 
-This starts:
+This pulls and starts:
 - **MongoDB** on port `27017`
-- **API Server** on port `3000`
-- **Web Client** on port `80`
+- **API Server** on port `3000` (`demensdeum/kaban-server:latest`)
+- **Web Client** on port `80` (`demensdeum/kaban-client:latest`)
 
 Access the application at: **http://localhost**
 
 ## Services
 
-| Service  | Container Name   | Port  | Description                |
-|----------|------------------|-------|----------------------------|
-| mongodb  | kaban-mongodb    | 27017 | MongoDB database           |
-| server   | kaban-server     | 3000  | Node.js REST API           |
-| client   | kaban-client     | 80    | Vue.js frontend (nginx)    |
+| Service  | Image                              | Port  | Description             |
+|----------|------------------------------------|-------|-------------------------|
+| mongodb  | mongo:latest                       | 27017 | MongoDB database        |
+| server   | demensdeum/kaban-server:latest     | 3000  | Node.js REST API        |
+| client   | demensdeum/kaban-client:latest     | 80    | Vue.js frontend (nginx) |
 
 ## Commands
 
@@ -42,18 +42,14 @@ docker-compose up -d
 docker-compose down
 ```
 
-### View logs
+### Pull latest images
 ```bash
-# All services
-docker-compose logs -f
-
-# Specific service
-docker-compose logs -f server
+docker-compose pull
 ```
 
-### Rebuild after code changes
+### View logs
 ```bash
-docker-compose up -d --build
+docker-compose logs -f
 ```
 
 ### Remove all data (including database)
@@ -61,41 +57,29 @@ docker-compose up -d --build
 docker-compose down -v
 ```
 
-## Building Individual Images
+## Building & Pushing Images
 
-### Client
-```bash
-cd client
-docker build -t kaban-client .
-```
-
-### Server
+### Build and push server
 ```bash
 cd server
-docker build -t kaban-server .
+docker build -t demensdeum/kaban-server:latest .
+docker push demensdeum/kaban-server:latest
+```
+
+### Build and push client
+```bash
+cd client
+docker build -t demensdeum/kaban-client:latest .
+docker push demensdeum/kaban-client:latest
 ```
 
 ## Environment Variables
 
-The server accepts the following environment variables:
-
 | Variable     | Default                           | Description           |
 |--------------|-----------------------------------|-----------------------|
-| MONGODB_URI  | mongodb://localhost:27017/kaban   | MongoDB connection    |
+| MONGODB_URI  | mongodb://mongodb:27017/kaban     | MongoDB connection    |
 | PORT         | 3000                              | Server port           |
 
 ## Data Persistence
 
 MongoDB data is stored in a Docker volume named `mongodb_data`. This persists across container restarts.
-
-To backup the database:
-```bash
-docker exec kaban-mongodb mongodump --out /data/backup
-docker cp kaban-mongodb:/data/backup ./backup
-```
-
-To restore:
-```bash
-docker cp ./backup kaban-mongodb:/data/backup
-docker exec kaban-mongodb mongorestore /data/backup
-```
