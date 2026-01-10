@@ -7,6 +7,7 @@
       <input 
         v-model="board.name" 
         class="board-title-input"
+        :disabled="!canManageBoards"
         @blur="updateBoardName"
         @keyup.enter="$event.target.blur()"
       />
@@ -16,6 +17,8 @@
         v-for="column in board.columns" 
         :key="column._id"
         :column="column"
+        :canManageBoards="canManageBoards"
+        :canManageTasks="canManageTasks"
         @add-card="addCard"
         @update-card="updateCard"
         @delete-card="deleteCard"
@@ -24,7 +27,7 @@
         @move-card="moveCard"
       />
       
-      <div class="add-column">
+      <div v-if="canManageBoards" class="add-column">
         <button v-if="!showAddColumn" class="add-column-btn" @click="showAddColumn = true">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -96,11 +99,11 @@
 </template>
 
 <script>
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Column from '../components/Column.vue'
-import { boardsApi, columnsApi, cardsApi } from '../api'
+import { boardsApi, columnsApi, cardsApi, authApi } from '../api'
 
 export default {
   name: 'BoardView',
@@ -110,12 +113,23 @@ export default {
     const { t } = useI18n()
     const board = ref(null)
     const loading = ref(true)
+    const currentUser = ref(null)
     
     // Add column
     const showAddColumn = ref(false)
     const newColumnTitle = ref('')
     const columnInputRef = ref(null)
-    
+
+    const canManageBoards = computed(() => {
+      if (!currentUser.value) return true // Auth disabled case
+      return currentUser.value.isAdmin || currentUser.value.canManageBoards
+    })
+
+    const canManageTasks = computed(() => {
+      if (!currentUser.value) return true // Auth disabled case
+      return currentUser.value.isAdmin || currentUser.value.canManageTasks
+    })
+
     // Card modal
     const showCardModal = ref(false)
     const editingCard = ref(null)
@@ -134,6 +148,12 @@ export default {
     const fetchBoard = async () => {
       loading.value = true
       try {
+        const { data: status } = await authApi.getStatus()
+        if (status.authEnabled && localStorage.getItem('auth-token')) {
+          const { data: me } = await authApi.me()
+          currentUser.value = me
+        }
+
         const response = await boardsApi.getOne(route.params.id)
         board.value = response.data
       } catch (error) {
@@ -285,6 +305,8 @@ export default {
       editingCard,
       cardForm,
       colors,
+      canManageBoards,
+      canManageTasks,
       updateBoardName,
       addColumn,
       cancelAddColumn,

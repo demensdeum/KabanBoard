@@ -33,7 +33,10 @@ export const authApi = {
     enable: (username, password) => api.post('/auth/enable', { username, password }),
     disable: () => api.post('/auth/disable'),
     login: (username, password) => api.post('/auth/login', { username, password }),
-    me: () => api.get('/auth/me')
+    me: () => api.get('/auth/me'),
+    getUsers: () => api.get('/auth/users'),
+    createUser: (userData) => api.post('/auth/users', userData),
+    deleteUser: (id) => api.delete(`/auth/users/${id}`)
 }
 
 export const boardsApi = {

@@ -2,7 +2,7 @@
   <div class="column">
     <div class="column-header">
       <div class="column-title">
-        <span v-if="!editingTitle" @dblclick="startEditTitle">{{ column.title }}</span>
+        <span v-if="!editingTitle" @dblclick="canManageBoards && startEditTitle">{{ column.title }}</span>
         <input 
           v-else
           v-model="titleInput"
@@ -14,7 +14,7 @@
         />
         <span class="column-count">{{ column.cards?.length || 0 }}</span>
       </div>
-      <div class="column-actions">
+      <div v-if="canManageBoards" class="column-actions">
         <button class="column-action-btn danger" @click="$emit('delete-column', column._id)" :title="$t('delete_column')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
@@ -26,21 +26,22 @@
     
     <div 
       class="column-cards"
-      :class="{ 'drag-over': dragOver }"
-      @dragover.prevent="onDragOver"
+      :class="{ 'drag-over': dragOver && canManageTasks }"
+      @dragover.prevent="canManageTasks && onDragOver($event)"
       @dragleave="onDragLeave"
-      @drop="onDrop"
+      @drop="canManageTasks && onDrop($event)"
     >
       <Card 
         v-for="card in column.cards" 
         :key="card._id"
         :card="card"
+        :canManageTasks="canManageTasks"
         @edit="$emit('update-card', card)"
         @delete="$emit('delete-card', card._id, column._id)"
-        @dragstart="onCardDragStart(card, $event)"
+        @dragstart="canManageTasks && onCardDragStart(card, $event)"
       />
       
-      <button class="add-card-btn" @click="$emit('add-card', column._id)">
+      <button v-if="canManageTasks" class="add-card-btn" @click="$emit('add-card', column._id)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
@@ -58,7 +59,9 @@ export default {
   name: 'Column',
   components: { Card },
   props: {
-    column: { type: Object, required: true }
+    column: { type: Object, required: true },
+    canManageBoards: { type: Boolean, default: true },
+    canManageTasks: { type: Boolean, default: true }
   },
   emits: ['add-card', 'update-card', 'delete-card', 'delete-column', 'update-column', 'move-card'],
   setup(props, { emit }) {

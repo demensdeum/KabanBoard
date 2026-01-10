@@ -4,6 +4,8 @@
       v-if="!isLoginPage"
       :boards="boards" 
       :currentBoardId="currentBoardId"
+      :canAddBoard="currentUser?.isAdmin || currentUser?.canManageBoards || !currentUser"
+      :canDeleteBoard="currentUser?.isAdmin || currentUser?.canManageBoards || !currentUser"
       @select-board="selectBoard"
       @add-board="addBoard"
       @delete-board="deleteBoard"
@@ -32,6 +34,7 @@ export default {
     const route = useRoute()
     const { t } = useI18n()
     const boards = ref([])
+    const currentUser = ref(null)
     
     const currentBoardId = computed(() => route.params.id || null)
 
@@ -40,9 +43,12 @@ export default {
       if (route.name === 'login') return
 
       try {
-        const { data: authStatus } = await authApi.getStatus()
-        if (authStatus.authEnabled && !localStorage.getItem('auth-token')) {
-          return
+        const { data: status } = await authApi.getStatus()
+        if (status.authEnabled) {
+          if (!localStorage.getItem('auth-token')) return
+          
+          const { data: me } = await authApi.me()
+          currentUser.value = me
         }
 
         const response = await boardsApi.getAll()
@@ -97,6 +103,7 @@ export default {
 
     return {
       boards,
+      currentUser,
       currentBoardId,
       fetchBoards,
       selectBoard,

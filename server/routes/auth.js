@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const User = require('../models/User');
 
+const authMiddleware = require('../middleware/auth');
+const { checkPermission } = require('../middleware/rbac');
+
 const JWT_SECRET = process.env.JWT_SECRET || 'kaban-secret-key-change-in-production';
 
 // Get auth status
@@ -37,7 +40,11 @@ router.post('/enable', async (req, res) => {
         const user = new User({
             username,
             passwordHash: password,
-            role: 'admin'
+            role: 'admin',
+            isAdmin: true,
+            canManageUsers: true,
+            canManageBoards: true,
+            canManageTasks: true
         });
         await user.save();
 
@@ -48,20 +55,8 @@ router.post('/enable', async (req, res) => {
 });
 
 // Disable auth (delete all users)
-router.post('/disable', async (req, res) => {
+router.post('/disable', authMiddleware, checkPermission('isAdmin'), async (req, res) => {
     try {
-        // Verify current user is admin via token
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId);
-        if (!user || user.role !== 'admin') {
-            return res.status(403).json({ error: 'Admin access required' });
-        }
-
         await User.deleteMany({});
         res.json({ message: 'Authentication disabled' });
     } catch (err) {
@@ -85,14 +80,30 @@ router.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign(
-            { userId: user._id, username: user.username, role: user.role },
+            {
+                userId: user._id,
+                username: user.username,
+                role: user.role,
+                isAdmin: user.isAdmin,
+                canManageUsers: user.canManageUsers,
+                canManageBoards: user.canManageBoards,
+                canManageTasks: user.canManageTasks
+            },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
 
         res.json({
             token,
-            user: { username: user.username, role: user.role }
+            user: {
+                username: user.username,
+                role: user.role,
+                isAdmin: user.isAdmin,
+                canManageUsers: user.canManageUsers,
+                canManageBoards: user.canManageBoards,
+                canManageTasks: user.canManageTasks,
+                allowedBoards: user.allowedBoards
+            }
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -100,22 +111,63 @@ router.post('/login', async (req, res) => {
 });
 
 // Get current user
-router.get('/me', async (req, res) => {
+router.get('/me', authMiddleware, async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId).select('-passwordHash');
+        const user = await User.findById(req.user.userId).select('-passwordHash');
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        res.json({ username: user.username, role: user.role });
+        res.json({
+            username: user.username,
+            role: user.role,
+            isAdmin: user.isAdmin,
+            canManageUsers: user.canManageUsers,
+            canManageBoards: user.canManageBoards,
+            canManageTasks: user.canManageTasks,
+            allowedBoards: user.allowedBoards
+        });
     } catch (err) {
         res.status(401).json({ error: 'Invalid token' });
+    }
+});
+
+// User Management (Admin only)
+router.get('/users', authMiddleware, checkPermission('canManageUsers'), async (req, res) => {
+    try {
+        const users = await User.find().select('-passwordHash');
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/users', authMiddleware, checkPermission('canManageUsers'), async (req, res) => {
+    try {
+        const { username, password, permissions, allowedBoards } = req.body;
+        const user = new User({
+            username,
+            passwordHash: password,
+            ...permissions,
+            allowedBoards
+        });
+        await user.save();
+        res.status(201).json({ _id: user._id, username: user.username });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+router.delete('/users/:id', authMiddleware, checkPermission('canManageUsers'), async (req, res) => {
+    try {
+        const userToDelete = await User.findById(req.params.id);
+        if (userToDelete?.isAdmin) {
+            return res.status(400).json({ error: 'Cannot delete superuser' });
+        }
+        await User.findByIdAndDelete(req.params.id);
+        res.json({ message: 'User deleted' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

@@ -3,10 +3,24 @@ const router = express.Router();
 const Column = require('../models/Column');
 const Card = require('../models/Card');
 
+const User = require('../models/User');
+const { checkPermission } = require('../middleware/rbac');
+
+// Helper to check if user has access to a specific board
+const canAccessBoard = async (userId, boardId) => {
+    const user = await User.findById(userId);
+    if (user.isAdmin || user.role === 'admin') return true;
+    return user.allowedBoards.some(id => id.toString() === boardId.toString());
+};
+
 // Create new column
-router.post('/', async (req, res) => {
+router.post('/', checkPermission('canManageBoards'), async (req, res) => {
     try {
         const { title, boardId } = req.body;
+
+        if (!await canAccessBoard(req.user.userId, boardId)) {
+            return res.status(403).json({ error: 'Access denied to this board' });
+        }
 
         // Get the highest order for this board
         const lastColumn = await Column.findOne({ boardId }).sort({ order: -1 });
@@ -22,16 +36,17 @@ router.post('/', async (req, res) => {
 });
 
 // Update column
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkPermission('canManageBoards'), async (req, res) => {
     try {
-        const column = await Column.findByIdAndUpdate(
-            req.params.id,
-            { title: req.body.title },
-            { new: true }
-        );
-        if (!column) {
-            return res.status(404).json({ error: 'Column not found' });
+        const column = await Column.findById(req.params.id);
+        if (!column) return res.status(404).json({ error: 'Column not found' });
+
+        if (!await canAccessBoard(req.user.userId, column.boardId)) {
+            return res.status(403).json({ error: 'Access denied' });
         }
+
+        column.title = req.body.title || column.title;
+        await column.save();
         res.json(column);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -39,17 +54,17 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete column and its cards
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkPermission('canManageBoards'), async (req, res) => {
     try {
         const column = await Column.findById(req.params.id);
-        if (!column) {
-            return res.status(404).json({ error: 'Column not found' });
+        if (!column) return res.status(404).json({ error: 'Column not found' });
+
+        if (!await canAccessBoard(req.user.userId, column.boardId)) {
+            return res.status(403).json({ error: 'Access denied' });
         }
 
         // Delete all cards in this column
         await Card.deleteMany({ columnId: column._id });
-
-        // Delete the column
         await Column.findByIdAndDelete(req.params.id);
 
         res.json({ message: 'Column deleted' });
@@ -59,17 +74,17 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Reorder columns
-router.put('/:id/reorder', async (req, res) => {
+router.put('/:id/reorder', checkPermission('canManageBoards'), async (req, res) => {
     try {
-        const { order } = req.body;
-        const column = await Column.findByIdAndUpdate(
-            req.params.id,
-            { order },
-            { new: true }
-        );
-        if (!column) {
-            return res.status(404).json({ error: 'Column not found' });
+        const column = await Column.findById(req.params.id);
+        if (!column) return res.status(404).json({ error: 'Column not found' });
+
+        if (!await canAccessBoard(req.user.userId, column.boardId)) {
+            return res.status(403).json({ error: 'Access denied' });
         }
+
+        column.order = req.body.order;
+        await column.save();
         res.json(column);
     } catch (err) {
         res.status(400).json({ error: err.message });

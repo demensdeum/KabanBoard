@@ -81,12 +81,17 @@ export default {
 
 <style scoped>
 .login-container {
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--bg-primary);
   padding: 20px;
+  z-index: 1000;
 }
 
 .login-card {

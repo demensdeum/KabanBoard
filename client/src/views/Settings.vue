@@ -29,36 +29,90 @@
         </div>
       </div>
 
-      <div class="setting-item auth-section">
+      <div v-if="userPermissions.canManageUsers" class="setting-item user-management-section">
         <div class="setting-header">
           <div class="setting-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
-          <label class="setting-label">{{ $t('authentication') }}</label>
+          <label class="setting-label">{{ $t('user_management') }}</label>
         </div>
 
-        <div class="auth-controls">
-          <div v-if="!authStatus.authEnabled" class="auth-setup">
-            <p class="auth-tip">{{ $t('auth_setup_tip') }}</p>
-            <div class="form-group">
-              <input v-model="adminForm.username" class="form-input" :placeholder="$t('admin_username')">
+        <div class="user-list">
+          <div v-for="user in users" :key="user._id" class="user-item">
+            <div class="user-info">
+              <span class="user-name">{{ user.username }}</span>
+              <div class="user-badges">
+                <span v-if="user.isAdmin" class="badge admin">Super</span>
+                <span v-if="user.canManageUsers" class="badge">Users</span>
+                <span v-if="user.canManageBoards" class="badge">Boards</span>
+                <span v-if="user.canManageTasks" class="badge">Tasks</span>
+              </div>
             </div>
-            <div class="form-group">
-              <input v-model="adminForm.password" type="password" class="form-input" :placeholder="$t('admin_password')">
-            </div>
-            <button class="btn btn-primary" @click="enableAuth" :disabled="!adminForm.username || !adminForm.password">
-              {{ $t('enable_auth') }}
+            <button v-if="!user.isAdmin" class="btn-icon danger" @click="deleteUser(user._id)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
             </button>
           </div>
-          
-          <div v-else class="auth-enabled">
-            <p class="auth-tip success">{{ $t('auth_enabled_tip') }}</p>
-            <button class="btn btn-secondary danger-hover" @click="disableAuth">
-              {{ $t('disable_auth') }}
-            </button>
+        </div>
+
+        <button class="btn btn-secondary add-user-btn" @click="showAddUserModal = true">
+          {{ $t('add_user') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div v-if="showAddUserModal" class="modal-overlay" @click.self="showAddUserModal = false">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">{{ $t('add_user') }}</h3>
+          <button class="modal-close" @click="showAddUserModal = false">&times;</button>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">{{ $t('username') }}</label>
+          <input v-model="newUserForm.username" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ $t('password') }}</label>
+          <input v-model="newUserForm.password" type="password" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ $t('permissions') }}</label>
+          <div class="permission-grid">
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="newUserForm.permissions.canManageUsers"> {{ $t('perm_users') }}
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="newUserForm.permissions.canManageBoards"> {{ $t('perm_boards') }}
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="newUserForm.permissions.canManageTasks"> {{ $t('perm_tasks') }}
+            </label>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ $t('allowed_boards') }}</label>
+          <div class="boards-select-list">
+            <label v-for="board in allBoards" :key="board._id" class="checkbox-label">
+              <input type="checkbox" :value="board._id" v-model="newUserForm.allowedBoards"> {{ board.name }}
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" @click="showAddUserModal = false">{{ $t('cancel') }}</button>
+          <button class="btn btn-primary" @click="createUser" :disabled="!newUserForm.username || !newUserForm.password">
+            {{ $t('create') }}
+          </button>
         </div>
       </div>
     </div>
@@ -68,7 +122,7 @@
 <script>
 import { useI18n } from 'vue-i18n'
 import { ref, watch, onMounted } from 'vue'
-import { authApi } from '../api'
+import { authApi, boardsApi } from '../api'
 
 export default {
   name: 'Settings',
@@ -77,27 +131,55 @@ export default {
     const currentLocale = ref(locale.value)
     const authStatus = ref({ authEnabled: false })
     const adminForm = ref({ username: '', password: '' })
+    
+    // User Management
+    const users = ref([])
+    const allBoards = ref([])
+    const userPermissions = ref({ canManageUsers: false })
+    const showAddUserModal = ref(false)
+    const newUserForm = ref({
+      username: '',
+      password: '',
+      permissions: {
+        canManageUsers: false,
+        canManageBoards: false,
+        canManageTasks: false
+      },
+      allowedBoards: []
+    })
 
     const languages = [
       { code: 'en', name: 'English', flag: '🇺🇸' },
       { code: 'ru', name: 'Русский', flag: '🇷🇺' }
     ]
 
-    const fetchAuthStatus = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await authApi.getStatus()
-        authStatus.value = data
+        const { data: status } = await authApi.getStatus()
+        authStatus.value = status
+
+        if (status.authEnabled) {
+          const { data: me } = await authApi.me()
+          userPermissions.value = me
+          
+          if (me.canManageUsers || me.isAdmin) {
+            const [usersRes, boardsRes] = await Promise.all([
+              authApi.getUsers(),
+              boardsApi.getAll()
+            ])
+            users.value = usersRes.data
+            allBoards.value = boardsRes.data
+          }
+        }
       } catch (err) {
-        console.error('Failed to fetch auth status', err)
+        console.error('Failed to fetch settings data', err)
       }
     }
 
     const enableAuth = async () => {
       try {
         await authApi.enable(adminForm.value.username, adminForm.value.password)
-        await fetchAuthStatus()
         alert(t('auth_enabled_success'))
-        // Login automatically if possible or redirect to login
         window.location.reload()
       } catch (err) {
         alert(err.response?.data?.error || 'Failed to enable auth')
@@ -109,11 +191,37 @@ export default {
       try {
         await authApi.disable()
         localStorage.removeItem('auth-token')
-        await fetchAuthStatus()
         alert(t('auth_disabled_success'))
         window.location.reload()
       } catch (err) {
         alert(err.response?.data?.error || 'Failed to disable auth')
+      }
+    }
+
+    const createUser = async () => {
+      try {
+        await authApi.createUser(newUserForm.value)
+        showAddUserModal.value = false
+        newUserForm.value = {
+          username: '',
+          password: '',
+          permissions: { canManageUsers: false, canManageBoards: false, canManageTasks: false },
+          allowedBoards: []
+        }
+        await fetchData()
+        alert(t('user_created_success'))
+      } catch (err) {
+        alert(err.response?.data?.error || 'Failed to create user')
+      }
+    }
+
+    const deleteUser = async (id) => {
+      if (!confirm(t('delete_user_confirm'))) return
+      try {
+        await authApi.deleteUser(id)
+        await fetchData()
+      } catch (err) {
+        alert(err.response?.data?.error || 'Failed to delete user')
       }
     }
 
@@ -127,7 +235,7 @@ export default {
       currentLocale.value = newVal
     })
 
-    onMounted(fetchAuthStatus)
+    onMounted(fetchData)
 
     return {
       currentLocale,
@@ -136,7 +244,14 @@ export default {
       authStatus,
       adminForm,
       enableAuth,
-      disableAuth
+      disableAuth,
+      users,
+      allBoards,
+      userPermissions,
+      showAddUserModal,
+      newUserForm,
+      createUser,
+      deleteUser
     }
   }
 }

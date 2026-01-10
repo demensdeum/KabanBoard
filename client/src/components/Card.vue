@@ -1,11 +1,11 @@
 <template>
   <div 
     class="card"
-    draggable="true"
-    @dragstart="$emit('dragstart', $event)"
+    :draggable="canManageTasks"
+    @dragstart="canManageTasks && $emit('dragstart', $event)"
   >
     <div class="card-color-bar" :style="{ backgroundColor: card.color || '#6366f1' }"></div>
-    <div class="card-actions">
+    <div v-if="canManageTasks" class="card-actions">
       <button class="card-action-btn" @click.stop="$emit('edit')" :title="$t('edit')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -28,7 +28,8 @@
 export default {
   name: 'Card',
   props: {
-    card: { type: Object, required: true }
+    card: { type: Object, required: true },
+    canManageTasks: { type: Boolean, default: true }
   },
   emits: ['edit', 'delete', 'dragstart']
 }

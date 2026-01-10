@@ -4,21 +4,37 @@ const Board = require('../models/Board');
 const Column = require('../models/Column');
 const Card = require('../models/Card');
 
+const User = require('../models/User');
+const { checkPermission } = require('../middleware/rbac');
+
 // Default columns for new boards (fallback if not provided by client)
 const DEFAULT_COLUMNS = ['New', 'In Progress', 'Done'];
+
+// Helper to check if user has access to a specific board
+const canAccessBoard = (user, boardId) => {
+    if (user.isAdmin || user.role === 'admin') return true;
+    return user.allowedBoards.some(id => id.toString() === boardId.toString());
+};
 
 // Get all boards
 router.get('/', async (req, res) => {
     try {
-        const boards = await Board.find().sort({ createdAt: -1 });
+        const user = await User.findById(req.user.userId);
+        let query = {};
+
+        if (!user.isAdmin && user.role !== 'admin') {
+            query._id = { $in: user.allowedBoards };
+        }
+
+        const boards = await Board.find(query).sort({ createdAt: -1 });
         res.json(boards);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Create new board with default columns
-router.post('/', async (req, res) => {
+// Create new board
+router.post('/', checkPermission('canManageBoards'), async (req, res) => {
     try {
         const board = new Board({ name: req.body.name });
         await board.save();
@@ -36,22 +52,33 @@ router.post('/', async (req, res) => {
             await column.save();
         }
 
+        // Auto-add new board to creator's access list if they are not global admin
+        const user = await User.findById(req.user.userId);
+        if (!user.isAdmin && user.role !== 'admin') {
+            user.allowedBoards.push(board._id);
+            await user.save();
+        }
+
         res.status(201).json(board);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
 });
 
-// Get single board with columns and cards
+// Get single board
 router.get('/:id', async (req, res) => {
     try {
+        const user = await User.findById(req.user.userId);
+        if (!canAccessBoard(user, req.params.id)) {
+            return res.status(403).json({ error: 'Access denied to this board' });
+        }
+
         const board = await Board.findById(req.params.id);
         if (!board) {
             return res.status(404).json({ error: 'Board not found' });
         }
 
         const columns = await Column.find({ boardId: board._id }).sort({ order: 1 });
-
         const columnsWithCards = await Promise.all(
             columns.map(async (column) => {
                 const cards = await Card.find({ columnId: column._id }).sort({ order: 1 });
@@ -72,40 +99,40 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update board
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkPermission('canManageBoards'), async (req, res) => {
     try {
+        const user = await User.findById(req.user.userId);
+        if (!canAccessBoard(user, req.params.id)) {
+            return res.status(403).json({ error: 'Access denied' });
+        }
+
         const board = await Board.findByIdAndUpdate(
             req.params.id,
             { name: req.body.name },
             { new: true }
         );
-        if (!board) {
-            return res.status(404).json({ error: 'Board not found' });
-        }
         res.json(board);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
 });
 
-// Delete board and all its columns and cards
-router.delete('/:id', async (req, res) => {
+// Delete board
+router.delete('/:id', checkPermission('canManageBoards'), async (req, res) => {
     try {
-        const board = await Board.findById(req.params.id);
-        if (!board) {
-            return res.status(404).json({ error: 'Board not found' });
+        const user = await User.findById(req.user.userId);
+        if (!canAccessBoard(user, req.params.id)) {
+            return res.status(403).json({ error: 'Access denied' });
         }
 
-        // Delete all cards in columns of this board
+        const board = await Board.findById(req.params.id);
+        if (!board) return res.status(404).json({ error: 'Board not found' });
+
         const columns = await Column.find({ boardId: board._id });
         for (const column of columns) {
             await Card.deleteMany({ columnId: column._id });
         }
-
-        // Delete all columns
         await Column.deleteMany({ boardId: board._id });
-
-        // Delete the board
         await Board.findByIdAndDelete(req.params.id);
 
         res.json({ message: 'Board deleted' });

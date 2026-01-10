@@ -17,7 +17,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['admin', 'user'],
         default: 'user'
-    }
+    },
+    // Fine-grained permissions
+    isAdmin: { type: Boolean, default: false }, // Superuser
+    canManageUsers: { type: Boolean, default: false },
+    canManageBoards: { type: Boolean, default: false },
+    canManageTasks: { type: Boolean, default: false },
+    allowedBoards: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Board'
+    }]
 }, {
     timestamps: true
 });
