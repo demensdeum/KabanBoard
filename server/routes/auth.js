@@ -158,6 +158,47 @@ router.post('/users', authMiddleware, checkPermission('canManageUsers'), async (
     }
 });
 
+router.put('/users/:id', authMiddleware, checkPermission('canManageUsers'), async (req, res) => {
+    try {
+        const { username, password, permissions, allowedBoards } = req.body;
+        const userToUpdate = await User.findById(req.params.id);
+
+        if (!userToUpdate) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Prevent self-demotion from isAdmin or canManageUsers
+        if (req.user.userId === req.params.id) {
+            if (userToUpdate.isAdmin && permissions && permissions.isAdmin === false) {
+                return res.status(400).json({ error: 'Cannot remove your own admin status' });
+            }
+            if (userToUpdate.canManageUsers && permissions && permissions.canManageUsers === false) {
+                return res.status(400).json({ error: 'Cannot remove your own user management permissions' });
+            }
+        }
+
+        userToUpdate.username = username || userToUpdate.username;
+        if (password) {
+            userToUpdate.passwordHash = password;
+        }
+
+        if (permissions) {
+            Object.keys(permissions).forEach(key => {
+                userToUpdate[key] = permissions[key];
+            });
+        }
+
+        if (allowedBoards) {
+            userToUpdate.allowedBoards = allowedBoards;
+        }
+
+        await userToUpdate.save();
+        res.json({ _id: userToUpdate._id, username: userToUpdate.username });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 router.delete('/users/:id', authMiddleware, checkPermission('canManageUsers'), async (req, res) => {
     try {
         const userToDelete = await User.findById(req.params.id);

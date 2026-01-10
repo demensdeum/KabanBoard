@@ -53,11 +53,19 @@
                 <span v-if="user.canManageTasks" class="badge">Tasks</span>
               </div>
             </div>
-            <button v-if="!user.isAdmin" class="btn-icon danger" @click="deleteUser(user._id)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-            </button>
+            <div class="user-actions">
+              <button class="btn-icon" @click="editUser(user)" :title="$t('edit')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button v-if="!user.isAdmin" class="btn-icon danger" @click="deleteUser(user._id)" :title="$t('delete')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -68,11 +76,11 @@
     </div>
 
     <!-- Add User Modal -->
-    <div v-if="showAddUserModal" class="modal-overlay" @click.self="showAddUserModal = false">
+    <div v-if="showAddUserModal" class="modal-overlay" @click.self="closeUserModal">
       <div class="modal">
         <div class="modal-header">
-          <h3 class="modal-title">{{ $t('add_user') }}</h3>
-          <button class="modal-close" @click="showAddUserModal = false">&times;</button>
+          <h3 class="modal-title">{{ editingUser ? $t('edit_user') : $t('add_user') }}</h3>
+          <button class="modal-close" @click="closeUserModal">&times;</button>
         </div>
         
         <div class="form-group">
@@ -80,7 +88,7 @@
           <input v-model="newUserForm.username" class="form-input">
         </div>
         <div class="form-group">
-          <label class="form-label">{{ $t('password') }}</label>
+          <label class="form-label">{{ editingUser ? $t('new_password_optional') : $t('password') }}</label>
           <input v-model="newUserForm.password" type="password" class="form-input">
         </div>
 
@@ -109,9 +117,9 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="showAddUserModal = false">{{ $t('cancel') }}</button>
-          <button class="btn btn-primary" @click="createUser" :disabled="!newUserForm.username || !newUserForm.password">
-            {{ $t('create') }}
+          <button class="btn btn-secondary" @click="closeUserModal">{{ $t('cancel') }}</button>
+          <button class="btn btn-primary" @click="saveUser" :disabled="!newUserForm.username || (!editingUser && !newUserForm.password)">
+            {{ editingUser ? $t('save') : $t('create') }}
           </button>
         </div>
       </div>
@@ -137,13 +145,15 @@ export default {
     const allBoards = ref([])
     const userPermissions = ref({ canManageUsers: false })
     const showAddUserModal = ref(false)
+    const editingUser = ref(null)
     const newUserForm = ref({
       username: '',
       password: '',
       permissions: {
         canManageUsers: false,
         canManageBoards: false,
-        canManageTasks: false
+        canManageTasks: false,
+        isAdmin: false
       },
       allowedBoards: []
     })
@@ -198,20 +208,51 @@ export default {
       }
     }
 
-    const createUser = async () => {
+    const editUser = (user) => {
+      editingUser.value = user
+      newUserForm.value = {
+        username: user.username,
+        password: '',
+        permissions: {
+          canManageUsers: user.canManageUsers || false,
+          canManageBoards: user.canManageBoards || false,
+          canManageTasks: user.canManageTasks || false,
+          isAdmin: user.isAdmin || false
+        },
+        allowedBoards: [...(user.allowedBoards || [])]
+      }
+      showAddUserModal.value = true
+    }
+
+    const saveUser = async () => {
       try {
-        await authApi.createUser(newUserForm.value)
-        showAddUserModal.value = false
-        newUserForm.value = {
-          username: '',
-          password: '',
-          permissions: { canManageUsers: false, canManageBoards: false, canManageTasks: false },
-          allowedBoards: []
+        if (editingUser.value) {
+          await authApi.updateUser(editingUser.value._id, newUserForm.value)
+          alert(t('user_updated_success'))
+        } else {
+          await authApi.createUser(newUserForm.value)
+          alert(t('user_created_success'))
         }
+        closeUserModal()
         await fetchData()
-        alert(t('user_created_success'))
       } catch (err) {
-        alert(err.response?.data?.error || 'Failed to create user')
+        alert(err.response?.data?.error || 'Failed to save user')
+      }
+    }
+
+    const closeUserModal = () => {
+      showAddUserModal.value = false
+      editingUser.value = null
+      newUserForm.value = {
+        username: '',
+        password: '',
+        permissions: { 
+          canManageUsers: false, 
+          canManageBoards: false, 
+          canManageTasks: false,
+          isAdmin: false
+        },
+        allowedBoards: []
       }
     }
 
@@ -250,7 +291,10 @@ export default {
       userPermissions,
       showAddUserModal,
       newUserForm,
-      createUser,
+      editingUser,
+      editUser,
+      saveUser,
+      closeUserModal,
       deleteUser
     }
   }
@@ -292,6 +336,11 @@ export default {
 
 .form-group {
   margin-bottom: 4px;
+}
+
+.user-actions {
+  display: flex;
+  gap: 8px;
 }
 
 
