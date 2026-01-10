@@ -2,7 +2,7 @@
 
 ![logo.jpg](logo.jpg)
 
-A modern Kaban board application built with **Vue 3** and **MongoDB**.
+A modern Kanban board application built with **Vue 3** and **MongoDB**.
 
 ## Features
 
