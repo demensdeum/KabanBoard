@@ -5,7 +5,7 @@ import './assets/main.css'
 import i18n from './i18n'
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory('/kaban-board/'),
     routes: [
         {
             path: '/',

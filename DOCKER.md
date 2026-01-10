@@ -7,7 +7,7 @@ This interacts with the `docker-compose.yml` file to build and run the all-in-on
 
 1.  **Start**:
     ```bash
-    docker-compose up -d --build
+    docker-compose up -d
     ```
 
 2.  **Stop**:

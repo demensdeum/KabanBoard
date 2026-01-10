@@ -33,7 +33,8 @@ app.get('/api/health', (req, res) => {
 // Serve static frontend in production
 const path = require('path');
 const clientBuildPath = path.join(__dirname, '../client/dist');
-app.use(express.static(clientBuildPath));
+// Serve static frontend files (assets, index.html) when requested with /kaban-board prefix
+app.use('/kaban-board', express.static(clientBuildPath));
 
 // Handle SPA routing - send all non-API requests to index.html
 app.get('*', (req, res) => {
