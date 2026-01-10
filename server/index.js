@@ -30,6 +30,16 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Serve static frontend in production
+const path = require('path');
+const clientBuildPath = path.join(__dirname, '../client/dist');
+app.use(express.static(clientBuildPath));
+
+// Handle SPA routing - send all non-API requests to index.html
+app.get('*', (req, res) => {
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
+
 // Connect to MongoDB and start server
 mongoose.connect(MONGODB_URI)
     .then(() => {

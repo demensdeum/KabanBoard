@@ -1,35 +1,15 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: kaban-mongodb
-    restart: always
-    volumes:
-      - mongodb_data:/data/db
-    ports:
-      - "27017:27017"
-
-  server:
-    image: demensdeum/kaban-server:latest
-    container_name: kaban-server
-    restart: always
-    depends_on:
-      - mongodb
+  kaban-app:
+    build: .
+    image: demensdeum/kaban-board:latest
+    container_name: kaban-app
+    restart: unless-stopped
     ports:
       - "3000:3000"
-    environment:
-      - MONGODB_URI=mongodb://mongodb:27017/kaban
-      - PORT=3000
-
-  client:
-    image: demensdeum/kaban-client:latest
-    container_name: kaban-client
-    restart: always
-    ports:
-      - "80:80"
-    depends_on:
-      - server
+    volumes:
+      - mongodb_data:/data/db
 
 volumes:
   mongodb_data:

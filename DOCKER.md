@@ -1,13 +1,58 @@
 # Docker Deployment
 
-This guide explains how to run KabanBoard using Docker.
 
-## Prerequisites
+### Option 1: Docker Compose (Recommended)
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
+This interacts with the `docker-compose.yml` file to build and run the all-in-one container.
 
-## Quick Start
+1.  **Start**:
+    ```bash
+    docker-compose up -d --build
+    ```
+
+2.  **Stop**:
+    ```bash
+    docker-compose down
+    ```
+
+### Option 2: Manual Docker Command
+
+1.  **Build**:
+    ```bash
+    docker build -t demensdeum/kaban-board .
+    ```
+
+2.  **Run**:
+    ```bash
+    docker run -p 3000:3000 -v kaban_mongo_data:/data/db demensdeum/kaban-board
+    ```
+
+## How to use a different port
+
+By default, the application runs on port `3000`. If you want to use **port 8080** (or any other port), you only need to change the **Host Port** mapping.
+
+### Using Docker Compose
+
+1.  Open `docker-compose.yml`.
+2.  Find the `ports` section.
+3.  Change the **left number** (External Port) to your desired port.
+
+    ```yaml
+    ports:
+      - "8080:3000"  # <--- Change 3000 to 8080 here
+    ```
+
+4.  Run `docker-compose up -d`.
+5.  Access at `http://localhost:8080`.
+
+### Using Manual Command
+
+Change the `-p` flag:
+
+```bash
+docker run -p 8080:3000 kaban-app
+```
+
 
 Run the full stack with a single command:
 
