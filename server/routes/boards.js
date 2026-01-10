@@ -114,9 +114,11 @@ router.get('/:id', async (req, res) => {
 // Update board
 router.put('/:id', checkPermission('canManageBoards'), async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId);
-        if (!canAccessBoard(user, req.params.id)) {
-            return res.status(403).json({ error: 'Access denied' });
+        if (req.user) {
+            const user = await User.findById(req.user.userId);
+            if (!canAccessBoard(user, req.params.id)) {
+                return res.status(403).json({ error: 'Access denied' });
+            }
         }
 
         const board = await Board.findByIdAndUpdate(
@@ -133,9 +135,11 @@ router.put('/:id', checkPermission('canManageBoards'), async (req, res) => {
 // Delete board
 router.delete('/:id', checkPermission('canManageBoards'), async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId);
-        if (!canAccessBoard(user, req.params.id)) {
-            return res.status(403).json({ error: 'Access denied' });
+        if (req.user) {
+            const user = await User.findById(req.user.userId);
+            if (!canAccessBoard(user, req.params.id)) {
+                return res.status(403).json({ error: 'Access denied' });
+            }
         }
 
         const board = await Board.findById(req.params.id);
