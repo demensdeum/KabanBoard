@@ -22,7 +22,7 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('auth-token')
-            window.location.href = '/login'
+            window.location.href = '/kaban-board/login'
         }
         return Promise.reject(error)
     }

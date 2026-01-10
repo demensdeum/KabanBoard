@@ -29,6 +29,46 @@
         </div>
       </div>
     </div>
+    <div class="settings-card">
+      <div class="setting-item">
+        <div class="setting-header">
+          <div class="setting-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <label class="setting-label">{{ $t('authentication') }}</label>
+        </div>
+
+        <div v-if="!authStatus.authEnabled" class="auth-setup">
+          <p class="auth-tip">{{ $t('auth_disabled_tip') }}</p>
+          <div class="form-group">
+            <label class="form-label">{{ $t('admin_username') }}</label>
+            <input v-model="adminForm.username" class="form-input" :placeholder="$t('admin_username')">
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ $t('admin_password') }}</label>
+            <input v-model="adminForm.password" type="password" class="form-input" :placeholder="$t('admin_password')">
+          </div>
+          <button class="btn btn-primary" @click="enableAuth" :disabled="!adminForm.username || !adminForm.password">
+            {{ $t('enable_auth') }}
+          </button>
+        </div>
+
+        <div v-else class="auth-status">
+          <p class="auth-tip success">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: text-bottom;">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            {{ $t('auth_enabled') }}
+          </p>
+          <button v-if="userPermissions.isAdmin" class="btn btn-secondary danger-hover" @click="disableAuth">
+            {{ $t('disable_auth') }}
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div v-if="userPermissions.canManageUsers" class="settings-card">
       <div class="setting-item user-management-section">
