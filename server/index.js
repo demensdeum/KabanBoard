@@ -18,15 +18,15 @@ app.use(cors());
 app.use(express.json());
 
 // Auth routes (public)
-app.use('/api/auth', authRoutes);
+app.use('/kaban-board/api/auth', authRoutes);
 
 // Protected routes
-app.use('/api/boards', authMiddleware, boardRoutes);
-app.use('/api/columns', authMiddleware, columnRoutes);
-app.use('/api/cards', authMiddleware, cardRoutes);
+app.use('/kaban-board/api/boards', authMiddleware, boardRoutes);
+app.use('/kaban-board/api/columns', authMiddleware, columnRoutes);
+app.use('/kaban-board/api/cards', authMiddleware, cardRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/kaban-board/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
