@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: '/kaban-board/api',
     headers: {
         'Content-Type': 'application/json'
     }

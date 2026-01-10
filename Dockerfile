@@ -35,10 +35,10 @@ nodaemon=true\n\
 user=root\n\
 \n\
 [program:mongodb]\n\
-command=/usr/bin/mongod --dbpath /data/db --bind_ip_all\n\
+command=bash -c \"chown -R mongodb:mongodb /data/db && /usr/bin/mongod --dbpath /data/db --bind_ip_all\"\n\
 autostart=true\n\
 autorestart=true\n\
-user=mongodb\n\
+user=root\n\
 stdout_logfile=/var/log/mongodb.log\n\
 stderr_logfile=/var/log/mongodb.err\n\
 \n\
