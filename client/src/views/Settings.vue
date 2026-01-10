@@ -517,18 +517,22 @@ export default {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
   color: var(--text-secondary);
+  border: 1px solid transparent;
   transition: all 0.2s ease;
 }
 
 .btn-icon:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .btn-icon.danger:hover {
   background: rgba(239, 68, 68, 0.1);
   color: var(--danger);
+  border-color: var(--danger);
 }
 
 .add-user-btn {
