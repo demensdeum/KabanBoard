@@ -57,6 +57,20 @@ New boards automatically include three columns:
 - **In Progress** - For tasks being worked on
 - **Done** - For completed tasks
 
+## Docker
+
+Run with Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+This pulls images from Docker Hub (`demensdeum/kaban-server`, `demensdeum/kaban-client`) and starts the full stack.
+
+Access at: **http://localhost**
+
+See [DOCKER.md](DOCKER.md) for full documentation.
+
 ## License
 
 MIT
