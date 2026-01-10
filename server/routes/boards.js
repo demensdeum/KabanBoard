@@ -19,7 +19,18 @@ const canAccessBoard = (user, boardId) => {
 // Get all boards
 router.get('/', async (req, res) => {
     try {
+        // If auth is disabled (req.user undefined), return all boards
+        if (!req.user) {
+            const boards = await Board.find().sort({ createdAt: -1 });
+            return res.json(boards);
+        }
+
         const user = await User.findById(req.user.userId);
+        if (!user) {
+            // Token might be stale (user deleted), force re-login or return empty
+            return res.status(401).json({ error: 'User not found' });
+        }
+
         let query = {};
 
         if (!user.isAdmin && user.role !== 'admin') {
@@ -53,10 +64,12 @@ router.post('/', checkPermission('canManageBoards'), async (req, res) => {
         }
 
         // Auto-add new board to creator's access list if they are not global admin
-        const user = await User.findById(req.user.userId);
-        if (!user.isAdmin && user.role !== 'admin') {
-            user.allowedBoards.push(board._id);
-            await user.save();
+        if (req.user) {
+            const user = await User.findById(req.user.userId);
+            if (user && !user.isAdmin && user.role !== 'admin') {
+                user.allowedBoards.push(board._id);
+                await user.save();
+            }
         }
 
         res.status(201).json(board);
