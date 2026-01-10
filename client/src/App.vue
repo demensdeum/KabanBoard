@@ -1,13 +1,14 @@
 <template>
   <div id="app">
     <Sidebar 
+      v-if="!isLoginPage"
       :boards="boards" 
       :currentBoardId="currentBoardId"
       @select-board="selectBoard"
       @add-board="addBoard"
       @delete-board="deleteBoard"
     />
-    <div class="main-content">
+    <div class="main-content" :class="{ 'no-sidebar': isLoginPage }">
       <router-view 
         :key="$route.fullPath"
         @boards-changed="fetchBoards"
@@ -17,11 +18,11 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Sidebar from './components/Sidebar.vue'
-import { boardsApi } from './api'
+import { boardsApi, authApi } from './api'
 
 export default {
   name: 'App',
@@ -35,13 +36,28 @@ export default {
     const currentBoardId = computed(() => route.params.id || null)
 
     const fetchBoards = async () => {
+      // Don't fetch if on login page or if we need auth but have no token
+      if (route.name === 'login') return
+
       try {
+        const { data: authStatus } = await authApi.getStatus()
+        if (authStatus.authEnabled && !localStorage.getItem('auth-token')) {
+          return
+        }
+
         const response = await boardsApi.getAll()
         boards.value = response.data
       } catch (error) {
         console.error('Failed to fetch boards:', error)
       }
     }
+
+    // Fetch boards when route changes (e.g. after login)
+    watch(() => route.path, (newPath) => {
+      if (newPath !== '/login' && boards.value.length === 0) {
+        fetchBoards()
+      }
+    })
 
     const selectBoard = (boardId) => {
       router.push(`/board/${boardId}`)
@@ -77,13 +93,16 @@ export default {
 
     onMounted(fetchBoards)
 
+    const isLoginPage = computed(() => route.name === 'login')
+
     return {
       boards,
       currentBoardId,
       fetchBoards,
       selectBoard,
       addBoard,
-      deleteBoard
+      deleteBoard,
+      isLoginPage
     }
   }
 }

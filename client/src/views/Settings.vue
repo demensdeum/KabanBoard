@@ -12,7 +12,7 @@
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
             </svg>
           </div>
-          <label for="language-select" class="setting-label">{{ $t('language') }}</label>
+          <label class="setting-label">{{ $t('language') }}</label>
         </div>
         
         <div class="language-selector">
@@ -28,24 +28,94 @@
           </button>
         </div>
       </div>
+
+      <div class="setting-item auth-section">
+        <div class="setting-header">
+          <div class="setting-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <label class="setting-label">{{ $t('authentication') }}</label>
+        </div>
+
+        <div class="auth-controls">
+          <div v-if="!authStatus.authEnabled" class="auth-setup">
+            <p class="auth-tip">{{ $t('auth_setup_tip') }}</p>
+            <div class="form-group">
+              <input v-model="adminForm.username" class="form-input" :placeholder="$t('admin_username')">
+            </div>
+            <div class="form-group">
+              <input v-model="adminForm.password" type="password" class="form-input" :placeholder="$t('admin_password')">
+            </div>
+            <button class="btn btn-primary" @click="enableAuth" :disabled="!adminForm.username || !adminForm.password">
+              {{ $t('enable_auth') }}
+            </button>
+          </div>
+          
+          <div v-else class="auth-enabled">
+            <p class="auth-tip success">{{ $t('auth_enabled_tip') }}</p>
+            <button class="btn btn-secondary danger-hover" @click="disableAuth">
+              {{ $t('disable_auth') }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import { useI18n } from 'vue-i18n'
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { authApi } from '../api'
 
 export default {
   name: 'Settings',
   setup() {
-    const { locale } = useI18n()
+    const { locale, t } = useI18n()
     const currentLocale = ref(locale.value)
+    const authStatus = ref({ authEnabled: false })
+    const adminForm = ref({ username: '', password: '' })
 
     const languages = [
       { code: 'en', name: 'English', flag: '🇺🇸' },
       { code: 'ru', name: 'Русский', flag: '🇷🇺' }
     ]
+
+    const fetchAuthStatus = async () => {
+      try {
+        const { data } = await authApi.getStatus()
+        authStatus.value = data
+      } catch (err) {
+        console.error('Failed to fetch auth status', err)
+      }
+    }
+
+    const enableAuth = async () => {
+      try {
+        await authApi.enable(adminForm.value.username, adminForm.value.password)
+        await fetchAuthStatus()
+        alert(t('auth_enabled_success'))
+        // Login automatically if possible or redirect to login
+        window.location.reload()
+      } catch (err) {
+        alert(err.response?.data?.error || 'Failed to enable auth')
+      }
+    }
+
+    const disableAuth = async () => {
+      if (!confirm(t('disable_auth_confirm'))) return
+      try {
+        await authApi.disable()
+        localStorage.removeItem('auth-token')
+        await fetchAuthStatus()
+        alert(t('auth_disabled_success'))
+        window.location.reload()
+      } catch (err) {
+        alert(err.response?.data?.error || 'Failed to disable auth')
+      }
+    }
 
     const selectLanguage = (code) => {
       currentLocale.value = code
@@ -57,16 +127,59 @@ export default {
       currentLocale.value = newVal
     })
 
+    onMounted(fetchAuthStatus)
+
     return {
       currentLocale,
       languages,
-      selectLanguage
+      selectLanguage,
+      authStatus,
+      adminForm,
+      enableAuth,
+      disableAuth
     }
   }
 }
 </script>
 
 <style scoped>
+.auth-section {
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.auth-controls {
+  margin-top: 8px;
+}
+
+.auth-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-tip {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.auth-tip.success {
+  color: var(--success);
+}
+
+.danger-hover:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+
+.form-group {
+  margin-bottom: 4px;
+}
+
+
 .settings-container {
   padding: 32px;
   max-width: 600px;

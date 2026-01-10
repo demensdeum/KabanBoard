@@ -6,6 +6,8 @@ require('dotenv').config();
 const boardRoutes = require('./routes/boards');
 const columnRoutes = require('./routes/columns');
 const cardRoutes = require('./routes/cards');
+const authRoutes = require('./routes/auth');
+const authMiddleware = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,10 +17,13 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kaban'
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use('/api/boards', boardRoutes);
-app.use('/api/columns', columnRoutes);
-app.use('/api/cards', cardRoutes);
+// Auth routes (public)
+app.use('/api/auth', authRoutes);
+
+// Protected routes
+app.use('/api/boards', authMiddleware, boardRoutes);
+app.use('/api/columns', authMiddleware, columnRoutes);
+app.use('/api/cards', authMiddleware, cardRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

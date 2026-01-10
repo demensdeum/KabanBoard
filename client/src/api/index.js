@@ -7,6 +7,35 @@ const api = axios.create({
     }
 })
 
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('auth-token')
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+})
+
+// Handle 401 responses
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('auth-token')
+            window.location.href = '/login'
+        }
+        return Promise.reject(error)
+    }
+)
+
+export const authApi = {
+    getStatus: () => api.get('/auth/status'),
+    enable: (username, password) => api.post('/auth/enable', { username, password }),
+    disable: () => api.post('/auth/disable'),
+    login: (username, password) => api.post('/auth/login', { username, password }),
+    me: () => api.get('/auth/me')
+}
+
 export const boardsApi = {
     getAll: () => api.get('/boards'),
     getOne: (id) => api.get(`/boards/${id}`),
