@@ -19,6 +19,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Sidebar from './components/Sidebar.vue'
 import { boardsApi } from './api'
 
@@ -28,6 +29,7 @@ export default {
   setup() {
     const router = useRouter()
     const route = useRoute()
+    const { t } = useI18n()
     const boards = ref([])
     
     const currentBoardId = computed(() => route.params.id || null)
@@ -47,7 +49,12 @@ export default {
 
     const addBoard = async (name) => {
       try {
-        const response = await boardsApi.create(name)
+        const defaultColumns = [
+          t('column_new'),
+          t('column_in_progress'),
+          t('column_done')
+        ]
+        const response = await boardsApi.create(name, defaultColumns)
         boards.value.unshift(response.data)
         router.push(`/board/${response.data._id}`)
       } catch (error) {
@@ -56,7 +63,7 @@ export default {
     }
 
     const deleteBoard = async (boardId) => {
-      if (!confirm('Are you sure you want to delete this board?')) return
+      if (!confirm(t('delete_board_confirm'))) return
       try {
         await boardsApi.delete(boardId)
         boards.value = boards.value.filter(b => b._id !== boardId)

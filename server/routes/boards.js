@@ -4,7 +4,7 @@ const Board = require('../models/Board');
 const Column = require('../models/Column');
 const Card = require('../models/Card');
 
-// Default columns for new boards
+// Default columns for new boards (fallback if not provided by client)
 const DEFAULT_COLUMNS = ['New', 'In Progress', 'Done'];
 
 // Get all boards
@@ -23,10 +23,13 @@ router.post('/', async (req, res) => {
         const board = new Board({ name: req.body.name });
         await board.save();
 
+        // Use columns from request or fall back to defaults
+        const columnNames = req.body.columns || DEFAULT_COLUMNS;
+
         // Create default columns
-        for (let i = 0; i < DEFAULT_COLUMNS.length; i++) {
+        for (let i = 0; i < columnNames.length; i++) {
             const column = new Column({
-                title: DEFAULT_COLUMNS[i],
+                title: columnNames[i],
                 boardId: board._id,
                 order: i
             });

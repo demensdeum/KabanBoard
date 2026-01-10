@@ -29,20 +29,20 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          Add Column
+          {{ $t('add_column') }}
         </button>
         <div v-else class="column" style="padding: 16px;">
           <input 
             v-model="newColumnTitle"
             class="inline-input"
-            placeholder="Column title..."
+            :placeholder="$t('column_title_placeholder')"
             @keyup.enter="addColumn"
             @keyup.escape="cancelAddColumn"
             ref="columnInputRef"
           />
           <div style="display: flex; gap: 8px; margin-top: 12px;">
-            <button class="btn btn-primary" @click="addColumn" style="flex: 1;">Add</button>
-            <button class="btn btn-secondary" @click="cancelAddColumn">Cancel</button>
+            <button class="btn btn-primary" @click="addColumn" style="flex: 1;">{{ $t('add') }}</button>
+            <button class="btn btn-secondary" @click="cancelAddColumn">{{ $t('cancel') }}</button>
           </div>
         </div>
       </div>
@@ -54,7 +54,7 @@
     <div v-if="showCardModal" class="modal-overlay" @click.self="closeCardModal">
       <div class="modal">
         <div class="modal-header">
-          <h3 class="modal-title">{{ editingCard ? 'Edit Card' : 'Add Card' }}</h3>
+          <h3 class="modal-title">{{ editingCard ? $t('edit_card') : $t('add_card') }}</h3>
           <button class="modal-close" @click="closeCardModal">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -63,17 +63,17 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label">Title</label>
-          <input v-model="cardForm.title" class="form-input" placeholder="Enter card title..." />
+          <label class="form-label">{{ $t('title') }}</label>
+          <input v-model="cardForm.title" class="form-input" :placeholder="$t('title_placeholder')" />
         </div>
         
         <div class="form-group">
-          <label class="form-label">Description</label>
-          <textarea v-model="cardForm.description" class="form-input form-textarea" placeholder="Enter description..."></textarea>
+          <label class="form-label">{{ $t('description') }}</label>
+          <textarea v-model="cardForm.description" class="form-input form-textarea" :placeholder="$t('description_placeholder')"></textarea>
         </div>
         
         <div class="form-group">
-          <label class="form-label">Color</label>
+          <label class="form-label">{{ $t('color') }}</label>
           <div class="color-picker">
             <div 
               v-for="color in colors" 
@@ -87,8 +87,8 @@
         </div>
         
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="closeCardModal">Cancel</button>
-          <button class="btn btn-primary" @click="saveCard">{{ editingCard ? 'Update' : 'Add' }} Card</button>
+          <button class="btn btn-secondary" @click="closeCardModal">{{ $t('cancel') }}</button>
+          <button class="btn btn-primary" @click="saveCard">{{ editingCard ? $t('update_card') : $t('add_card') }}</button>
         </div>
       </div>
     </div>
@@ -98,6 +98,7 @@
 <script>
 import { ref, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Column from '../components/Column.vue'
 import { boardsApi, columnsApi, cardsApi } from '../api'
 
@@ -106,6 +107,7 @@ export default {
   components: { Column },
   setup() {
     const route = useRoute()
+    const { t } = useI18n()
     const board = ref(null)
     const loading = ref(true)
     
@@ -176,7 +178,7 @@ export default {
     }
 
     const deleteColumn = async (columnId) => {
-      if (!confirm('Delete this column and all its cards?')) return
+      if (!confirm(t('delete_column_confirm'))) return
       try {
         await columnsApi.delete(columnId)
         board.value.columns = board.value.columns.filter(c => c._id !== columnId)

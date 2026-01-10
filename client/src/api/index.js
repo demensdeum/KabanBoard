@@ -10,7 +10,7 @@ const api = axios.create({
 export const boardsApi = {
     getAll: () => api.get('/boards'),
     getOne: (id) => api.get(`/boards/${id}`),
-    create: (name) => api.post('/boards', { name }),
+    create: (name, columns) => api.post('/boards', { name, columns }),
     update: (id, name) => api.put(`/boards/${id}`, { name }),
     delete: (id) => api.delete(`/boards/${id}`)
 }
