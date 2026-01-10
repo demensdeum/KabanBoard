@@ -4,6 +4,13 @@
 
 A modern Kanban board application built with **Vue 3** and **MongoDB**.
 
+## Demo
+
+Check out the live demo:
+- **URL**: [https://mediumdemens.vps.webdock.cloud/kaban-board/](https://mediumdemens.vps.webdock.cloud/kaban-board/)
+- **User**: `guest`
+- **Password**: `guest123456789`
+
 ## Features
 
 - 📋 Create multiple boards
