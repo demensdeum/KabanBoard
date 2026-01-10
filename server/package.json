@@ -1,7 +1,7 @@
 {
-  "name": "kanban-server",
+  "name": "kaban-server",
   "version": "1.0.0",
-  "description": "Kanban Board Backend API",
+  "description": "Kaban Board Backend API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

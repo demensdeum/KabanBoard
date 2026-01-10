@@ -1,7 +1,7 @@
 <template>
   <aside class="sidebar">
     <div class="sidebar-header">
-      <div class="sidebar-logo">Kanban</div>
+      <div class="sidebar-logo">Kaban</div>
     </div>
     <div class="sidebar-content">
       <div class="sidebar-section-title">Your Boards</div>
