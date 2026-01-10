@@ -14,11 +14,16 @@ Run the full stack with a single command:
 ```bash
 docker-compose up -d
 ```
+*   **Internal Communication (Reverse Proxy)**:
+    *   **Browser** -> **Nginx (Client Container)**: Request `/api/...` on port 80.
+    *   **Nginx** -> **Server Container**: Proxies request to `http://server:3000`.
+    *   **Server** -> **MongoDB Container**: Connects via `mongodb://mongodb:27017`.
+    *   **Result**: The browser *never* talks to the server directly. It only talks to Nginx.
 
-This pulls and starts:
-- **MongoDB** on port `27017`
-- **API Server** on port `3000` (`demensdeum/kaban-server:latest`)
-- **Web Client** on port `80` (`demensdeum/kaban-client:latest`)
+*   **External Access (Port Mapping)**:
+    *   **MongoDB** on port `27017`
+    *   **API Server** on port `3000` (`demensdeum/kaban-server:latest`)
+    *   **Web Client** on port `80` (`demensdeum/kaban-client:latest`)
 
 Access the application at: **http://localhost**
 
@@ -83,3 +88,19 @@ docker push demensdeum/kaban-client:latest
 ## Data Persistence
 
 MongoDB data is stored in a Docker volume named `mongodb_data`. This persists across container restarts.
+
+## Option 2: Single Container (Simplest)
+
+If you prefer to run MongoDB, Server, and Client all in **one single container** (good for demos or simple deployment):
+
+1.  **Build the image**:
+    ```bash
+    docker build -f Dockerfile.allinone -t kaban-allinone .
+    ```
+
+2.  **Run the container**:
+    ```bash
+    docker run -p 3000:3000 kaban-allinone
+    ```
+
+3.  Access the app at: **http://localhost:3000**

@@ -1,0 +1,39 @@
+# Base image: MongoDB (latest)
+FROM mongo:latest
+
+# Install Node.js
+RUN apt-get update && apt-get install -y curl gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# --- Build Client ---
+COPY client/package*.json ./client/
+RUN cd client && npm install
+
+COPY client ./client
+RUN cd client && npm run build
+
+# --- Setup Server ---
+COPY server/package*.json ./server/
+RUN cd server && npm install
+
+COPY server ./server
+
+# Copy start script
+COPY start-all.sh .
+RUN chmod +x start-all.sh
+
+# Environment variables
+ENV PORT=3000
+ENV MONGODB_URI=mongodb://127.0.0.1:27017/kaban
+ENV NODE_ENV=production
+
+# Expose only one port
+EXPOSE 3000
+
+# Start everything
+CMD ["./start-all.sh"]
